@@ -1,10 +1,10 @@
-﻿// PROJECT : DSTools.SqlToCRMImport
+﻿// PROJECT : DSTools.MSSqlToCRMImport
 // This project was developed by Tanguy Touzard
 // CODEPLEX: http://xrmtoolbox.codeplex.com
 // BLOG: http://mscrmtools.blogspot.com
 
-using DSTools.SqlToCRMImport.AppCode;
-using DSTools.SqlToCRMImport.Forms;
+using DSTools.MSSqlToCRMImport.AppCode;
+using DSTools.MSSqlToCRMImport.Forms;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -20,7 +20,7 @@ using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Args;
 using XrmToolBox.Extensibility.Interfaces;
 
-namespace DSTools.SqlToCRMImport
+namespace DSTools.MSSqlToCRMImport
 {
     public partial class CRMImport : PluginControlBase, IGitHubPlugin, ICodePlexPlugin, IPayPalPlugin, IHelpPlugin, IStatusBarMessenger, IShortcutReceiver, IAboutPlugin
     {
@@ -35,7 +35,7 @@ namespace DSTools.SqlToCRMImport
 
         public CRMImport()
         {
-            InitializeComponent(); 
+            InitializeComponent();
         }
         public void LoadViews()
         {
@@ -47,9 +47,9 @@ namespace DSTools.SqlToCRMImport
                     this.views = new Dictionary<string, List<Entity>>();
 
                     if (views.Count == 0)
-                    {    
+                    {
                         this.entities = new List<string>();
-                        foreach (EntityMetadata Entity in GetEntities(Service))
+                        foreach (EntityMetadata Entity in GetEntities(Service).OrderBy(x => x.CollectionSchemaName))
                         {
                             if (!String.IsNullOrWhiteSpace(Entity.CollectionSchemaName))
                             {
@@ -124,16 +124,16 @@ namespace DSTools.SqlToCRMImport
 
         public override void ClosingPlugin(PluginCloseInfo info)
         {
-                       base.ClosingPlugin(info);
+            base.ClosingPlugin(info);
         }
 
-        
+
 
         private void tsbCancel_Click(object sender, EventArgs e)
         {
             CancelWorker();
             tsbCancel.Enabled = false;
-            
+
         }
 
         private void tsbClose_Click(object sender, EventArgs e)
@@ -220,7 +220,7 @@ namespace DSTools.SqlToCRMImport
 
         public void ReceiveShortcut(KeyEventArgs e)
         {
-           // MessageBox.Show(e.ToString());
+            // MessageBox.Show(e.ToString());
         }
 
         #endregion Shortcut Receiver implementation
@@ -300,7 +300,7 @@ namespace DSTools.SqlToCRMImport
             List<string> lstDB = new List<string>();
             lstTablesColumn.Items.Clear();
             lstSortedTablesColumn.Items.Clear();
-            using (SqlCommand cmd = new SqlCommand("select COLUMN_NAME  from " + Connection.Database + ".INFORMATION_SCHEMA.columns where TABLE_NAME='" + selectedTable + "'", cnn))
+            using (SqlCommand cmd = new SqlCommand("select COLUMN_NAME  from " + Connection.Database + ".INFORMATION_SCHEMA.columns where TABLE_NAME='" + selectedTable + "' order by COLUMN_NAME ", cnn))
             {
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
@@ -333,11 +333,11 @@ namespace DSTools.SqlToCRMImport
             {
                 //if more than one label for said attribute, get the one matching the languade code we want...
                 if (a.DisplayName.LocalizedLabels.Count() > 1)
-                    attributesData.Add(a.LogicalName, a.DisplayName.LocalizedLabels.SingleOrDefault().Label);
+                    attributesData.Add(a.LogicalName + " : " + a.AttributeType, a.DisplayName.LocalizedLabels.SingleOrDefault().Label);
 
                 //else, get the only one available regardless of languade code...
                 if (a.DisplayName.LocalizedLabels.Count() == 1)
-                    attributesData.Add(a.LogicalName, a.DisplayName.LocalizedLabels[0].Label);
+                    attributesData.Add(a.LogicalName + " : " + a.AttributeType, a.DisplayName.LocalizedLabels[0].Label);
             }
 
             return attributesData;
@@ -351,7 +351,7 @@ namespace DSTools.SqlToCRMImport
             Dictionary<string, string> dis = GetAttributes(entity[1].Trim());
             lstEntityColumn.Items.Clear();
             lstSortedEntityColumn.Items.Clear();
-            foreach (var item in dis)
+            foreach (var item in dis.OrderBy(x => x.Value))
             {
                 lstEntityColumn.Items.Add(item.Value + " : " + item.Key);
             }
@@ -518,11 +518,215 @@ namespace DSTools.SqlToCRMImport
         {
             if (lstSortedEntityColumn.Items.Count == lstSortedTablesColumn.Items.Count)
             {
-
+                LoadTableRecord();
             }
             else
             {
                 MessageBox.Show("Please Correct column Mapping with Entity Fields.");
+            }
+        }
+
+        public void LoadTableRecord()
+        {
+            SqlConnection cnn;
+
+            cnn = new SqlConnection(Connection.ConnectionString);
+            cnn.Open();
+
+
+            string query = "";
+
+            foreach (var item in lstSortedTablesColumn.Items)
+            {
+                query = query + item.ToString() + ",";
+            }
+            query = query.Substring(0, query.Length - 1);
+            List<Entity> dbEntity = new List<Entity>();
+            using (SqlCommand cmd = new SqlCommand("Select " + query + " from " + cmbTables.SelectedItem.ToString(), cnn))
+            {
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+
+                        //foreach (var item in lstSortedTablesColumn.Items)
+                        //{
+                        //    query = query + item.ToString() + ",";
+                        //}
+                        Entity en = new Entity(cmbEntity.SelectedItem.ToString().Split(':')[1].Trim());
+                        int i = 0;
+                        foreach (var item in lstSortedEntityColumn.Items)
+                        {
+                            string type = item.ToString().Split(':')[2].Trim();
+                            switch (type)
+                            {
+                                case "Boolean":
+                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToBoolean(dr[lstSortedTablesColumn.Items[i].ToString()]);
+                                    break;
+                                case "DateTime":
+                                    en[item.ToString().Split(':')[1].Trim()] = DateTime.Parse(dr[lstSortedTablesColumn.Items[i].ToString()].ToString());
+                                    break;
+                                case "Integer":
+                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToInt32(dr[lstSortedTablesColumn.Items[i].ToString()].ToString());
+                                    break;
+                                case "BigInt":
+                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToInt64(dr[lstSortedTablesColumn.Items[i].ToString()].ToString());
+                                    break;
+                                case "Money":
+                                    en[item.ToString().Split(':')[1].Trim()] = new Money(Convert.ToDecimal(dr[lstSortedTablesColumn.Items[i].ToString()].ToString()));
+                                    break;
+                                case "String":
+                                    en[item.ToString().Split(':')[1].Trim()] = dr[lstSortedTablesColumn.Items[i].ToString()];
+                                    break;
+                            }
+
+
+                            i++;
+                        }
+                        dbEntity.Add(en);
+                        // lstTablesColumn.Items.Add(dr[0].ToString());
+                    }
+                }
+            }
+            cnn.Close();
+
+            BulkCreate(Service, dbEntity);
+        }
+
+        /// <summary>
+        /// Call this method for bulk Create
+        /// </summary>
+        /// <param name="service">Org Service</param>
+        /// <param name="entities">Collection of entities to Create</param>
+        public void BulkCreate(IOrganizationService service, List<Entity> entities)
+        {
+            // Create an ExecuteMultipleRequest object.
+            var multipleRequest = new ExecuteMultipleRequest()
+            {
+                // Assign settings that define execution behavior: continue on error, return responses. 
+                Settings = new ExecuteMultipleSettings()
+                {
+                    ContinueOnError = false,
+                    ReturnResponses = true
+                },
+                // Create an empty organization request collection.
+                Requests = new OrganizationRequestCollection()
+            };
+
+            // Add a CreateRequest for each entity to the request collection.
+            foreach (var entity in entities)
+            {
+                CreateRequest createRequest = new CreateRequest { Target = entity };
+                multipleRequest.Requests.Add(createRequest);
+            }
+
+            // Execute all the requests in the request collection using a single web method call.
+            //  ExecuteMultipleResponse multipleResponse = (ExecuteMultipleResponse)service.Execute(multipleRequest);
+
+        }
+        /// <summary>
+        /// Call this method for bulk update
+        /// </summary>
+        /// <param name="service">Org Service</param>
+        /// <param name="entities">Collection of entities to Update</param>
+        public static void BulkUpdate(IOrganizationService service, DataCollection<Entity> entities)
+        {
+            // Create an ExecuteMultipleRequest object.
+            var multipleRequest = new ExecuteMultipleRequest()
+            {
+                // Assign settings that define execution behavior: continue on error, return responses. 
+                Settings = new ExecuteMultipleSettings()
+                {
+                    ContinueOnError = false,
+                    ReturnResponses = true
+                },
+                // Create an empty organization request collection.
+                Requests = new OrganizationRequestCollection()
+            };
+
+            // Add a UpdateRequest for each entity to the request collection.
+            foreach (var entity in entities)
+            {
+                UpdateRequest updateRequest = new UpdateRequest { Target = entity };
+                multipleRequest.Requests.Add(updateRequest);
+            }
+
+            // Execute all the requests in the request collection using a single web method call.
+            ExecuteMultipleResponse multipleResponse = (ExecuteMultipleResponse)service.Execute(multipleRequest);
+
+        }
+
+        /// <summary>
+        /// Call this method for bulk delete
+        /// </summary>
+        /// <param name="service">Org Service</param>
+        /// <param name="entityReferences">Collection of EntityReferences to Delete</param>
+        public static void BulkDelete(IOrganizationService service, DataCollection<EntityReference> entityReferences)
+        {
+            // Create an ExecuteMultipleRequest object.
+            var multipleRequest = new ExecuteMultipleRequest()
+            {
+                // Assign settings that define execution behavior: continue on error, return responses. 
+                Settings = new ExecuteMultipleSettings()
+                {
+                    ContinueOnError = false,
+                    ReturnResponses = true
+                },
+                // Create an empty organization request collection.
+                Requests = new OrganizationRequestCollection()
+            };
+
+            // Add a DeleteRequest for each entity to the request collection.
+            foreach (var entityRef in entityReferences)
+            {
+                DeleteRequest deleteRequest = new DeleteRequest { Target = entityRef };
+                multipleRequest.Requests.Add(deleteRequest);
+            }
+
+            // Execute all the requests in the request collection using a single web method call.
+            ExecuteMultipleResponse multipleResponse = (ExecuteMultipleResponse)service.Execute(multipleRequest);
+        }
+
+        private void cmbTables_Click(object sender, EventArgs e)
+        {
+            if(cmbTables.Items.Count==0)
+            {
+                using (GetConnection form = new GetConnection())
+                {
+                    DialogResult dr = form.ShowDialog();
+                    if (dr == DialogResult.OK)
+                    {
+                        if (!String.IsNullOrEmpty(Connection.ConnectionString))
+                        {
+                            SqlConnection cnn;
+
+                            cnn = new SqlConnection(Connection.ConnectionString);
+                            cnn.Open();
+                            List<string> lstDB = new List<string>();
+                            using (SqlCommand cmd = new SqlCommand("select table_name  from " + Connection.Database + ".INFORMATION_SCHEMA.TABLES order by table_name asc", cnn))
+                            {
+                                using (SqlDataReader dr1 = cmd.ExecuteReader())
+                                {
+                                    while (dr1.Read())
+                                    {
+                                        lstDB.Add(dr1[0].ToString());
+                                    }
+                                }
+                            }
+                            cnn.Close();
+                            // ComboBox combo = new ComboBox();
+                            cmbTables.DataSource = lstDB;
+                            //combo.Name = "comboBoxTables";
+                            //combo.DisplayMember = this.dS.Tables[0].Columns[++_i].ColumnName;
+                            // combo.Location = new Point(100, 100);
+
+                            //cmbTables.SelectedIndexChanged +=
+                            //new System.EventHandler(ComboBox1_SelectedIndexChanged);
+                            // this.Controls.Add(combo);
+                        }
+                    }
+
+                }
             }
         }
     }

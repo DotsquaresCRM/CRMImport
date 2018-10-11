@@ -1,4 +1,4 @@
-﻿namespace DSTools.SqlToCRMImport
+﻿namespace DSTools.MSSqlToCRMImport
 {
     partial class CRMImport
     {
@@ -56,6 +56,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.toolStripMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -71,7 +72,7 @@
             this.toolStripSeparator3});
             this.toolStripMenu.Location = new System.Drawing.Point(0, 0);
             this.toolStripMenu.Name = "toolStripMenu";
-            this.toolStripMenu.Size = new System.Drawing.Size(1179, 25);
+            this.toolStripMenu.Size = new System.Drawing.Size(1263, 25);
             this.toolStripMenu.TabIndex = 4;
             this.toolStripMenu.Text = "toolStrip1";
             // 
@@ -96,8 +97,8 @@
             this.btnLoadSql.Image = ((System.Drawing.Image)(resources.GetObject("btnLoadSql.Image")));
             this.btnLoadSql.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnLoadSql.Name = "btnLoadSql";
-            this.btnLoadSql.Size = new System.Drawing.Size(108, 22);
-            this.btnLoadSql.Text = "Load Sql Tables";
+            this.btnLoadSql.Size = new System.Drawing.Size(128, 22);
+            this.btnLoadSql.Text = "Load MS Sql Tables";
             this.btnLoadSql.ToolTipText = "Perfomrs a Who I Am request";
             this.btnLoadSql.Click += new System.EventHandler(this.btnLoadSql_Click);
             // 
@@ -149,6 +150,7 @@
             this.cmbTables.Size = new System.Drawing.Size(243, 21);
             this.cmbTables.TabIndex = 6;
             this.cmbTables.SelectedIndexChanged += new System.EventHandler(this.cmbTables_SelectedIndexChanged);
+            this.cmbTables.Click += new System.EventHandler(this.cmbTables_Click);
             // 
             // lstTablesColumn
             // 
@@ -163,7 +165,7 @@
             this.lstEntityColumn.FormattingEnabled = true;
             this.lstEntityColumn.Location = new System.Drawing.Point(939, 165);
             this.lstEntityColumn.Name = "lstEntityColumn";
-            this.lstEntityColumn.Size = new System.Drawing.Size(222, 251);
+            this.lstEntityColumn.Size = new System.Drawing.Size(321, 251);
             this.lstEntityColumn.TabIndex = 8;
             // 
             // lstSortedTablesColumn
@@ -308,11 +310,21 @@
             this.label4.TabIndex = 23;
             this.label4.Text = "Entity Fields";
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(525, 271);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(67, 13);
+            this.label5.TabIndex = 24;
+            this.label5.Text = "<---------------->";
+            // 
             // CRMImport
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -335,7 +347,7 @@
             this.Controls.Add(this.toolStripMenu);
             this.Name = "CRMImport";
             this.PluginIcon = ((System.Drawing.Icon)(resources.GetObject("$this.PluginIcon")));
-            this.Size = new System.Drawing.Size(1179, 505);
+            this.Size = new System.Drawing.Size(1263, 505);
             this.Load += new System.EventHandler(this.SampleTool_Load);
             this.toolStripMenu.ResumeLayout(false);
             this.toolStripMenu.PerformLayout();
@@ -372,5 +384,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ToolStripButton toolStripButton2;
+        private System.Windows.Forms.Label label5;
     }
 }

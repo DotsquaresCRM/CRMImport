@@ -7,8 +7,8 @@
     <ProjectGuid>{7BBD882F-267D-4DB4-B7DB-DAE24E39325C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DSTools.SqlToCRMImport</RootNamespace>
-    <AssemblyName>DSTools.SqlToCRMImport</AssemblyName>
+    <RootNamespace>DSTools.MSSqlToCRMImport</RootNamespace>
+    <AssemblyName>DSTools.MSSqlToCRMImport</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -128,11 +128,6 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="CRMImport.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -143,10 +138,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Forms\GetConnection.resx">
       <DependentUpon>GetConnection.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="CRMImport.resx">
       <DependentUpon>CRMImport.cs</DependentUpon>
