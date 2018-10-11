@@ -1,4 +1,4 @@
-﻿// PROJECT : DSTools.MSSqlToCRMImport
+// PROJECT : DSTools.MSSqlToCRMImport
 // This project was developed by Tanguy Touzard
 // CODEPLEX: http://xrmtoolbox.codeplex.com
 // BLOG: http://mscrmtools.blogspot.com
@@ -300,7 +300,7 @@ namespace DSTools.MSSqlToCRMImport
             List<string> lstDB = new List<string>();
             lstTablesColumn.Items.Clear();
             lstSortedTablesColumn.Items.Clear();
-            using (SqlCommand cmd = new SqlCommand("select COLUMN_NAME  from " + Connection.Database + ".INFORMATION_SCHEMA.columns where TABLE_NAME='" + selectedTable + "' order by COLUMN_NAME ", cnn))
+            using (SqlCommand cmd = new SqlCommand("select COLUMN_NAME+' : '+ DATA_TYPE as COLUMN_value  from " + Connection.Database + ".INFORMATION_SCHEMA.columns where TABLE_NAME='" + selectedTable + "' order by COLUMN_NAME ", cnn))
             {
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
@@ -561,22 +561,22 @@ namespace DSTools.MSSqlToCRMImport
                             switch (type)
                             {
                                 case "Boolean":
-                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToBoolean(dr[lstSortedTablesColumn.Items[i].ToString()]);
+                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToBoolean(dr[lstSortedTablesColumn.Items[i].ToString().Split(':')[0]]);
                                     break;
                                 case "DateTime":
-                                    en[item.ToString().Split(':')[1].Trim()] = DateTime.Parse(dr[lstSortedTablesColumn.Items[i].ToString()].ToString());
+                                    en[item.ToString().Split(':')[1].Trim()] = DateTime.Parse(dr[lstSortedTablesColumn.Items[i].ToString()].ToString().Split(':')[0]);
                                     break;
                                 case "Integer":
-                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToInt32(dr[lstSortedTablesColumn.Items[i].ToString()].ToString());
+                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToInt32(dr[lstSortedTablesColumn.Items[i].ToString()].ToString().Split(':')[0]);
                                     break;
                                 case "BigInt":
-                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToInt64(dr[lstSortedTablesColumn.Items[i].ToString()].ToString());
+                                    en[item.ToString().Split(':')[1].Trim()] = Convert.ToInt64(dr[lstSortedTablesColumn.Items[i].ToString()].ToString().Split(':')[0]);
                                     break;
                                 case "Money":
-                                    en[item.ToString().Split(':')[1].Trim()] = new Money(Convert.ToDecimal(dr[lstSortedTablesColumn.Items[i].ToString()].ToString()));
+                                    en[item.ToString().Split(':')[1].Trim()] = new Money(Convert.ToDecimal(dr[lstSortedTablesColumn.Items[i].ToString()].ToString().Split(':')[0]));
                                     break;
                                 case "String":
-                                    en[item.ToString().Split(':')[1].Trim()] = dr[lstSortedTablesColumn.Items[i].ToString()];
+                                    en[item.ToString().Split(':')[1].Trim()] = dr[lstSortedTablesColumn.Items[i].ToString().Split(':')[0]];
                                     break;
                             }
 
@@ -621,7 +621,8 @@ namespace DSTools.MSSqlToCRMImport
             }
 
             // Execute all the requests in the request collection using a single web method call.
-            //  ExecuteMultipleResponse multipleResponse = (ExecuteMultipleResponse)service.Execute(multipleRequest);
+            ExecuteMultipleResponse multipleResponse = (ExecuteMultipleResponse)service.Execute(multipleRequest);
+
 
         }
         /// <summary>
@@ -689,7 +690,7 @@ namespace DSTools.MSSqlToCRMImport
 
         private void cmbTables_Click(object sender, EventArgs e)
         {
-            if(cmbTables.Items.Count==0)
+            if (cmbTables.Items.Count == 0)
             {
                 using (GetConnection form = new GetConnection())
                 {
